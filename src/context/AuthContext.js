@@ -115,7 +115,7 @@ export function AuthProvider({ children }) {
 
     auth0Logout({
       logoutParams: {
-        returnTo: window.location.origin + "/login",
+        returnTo: window.location.origin,
       },
     });
 

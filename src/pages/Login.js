@@ -12,6 +12,11 @@ export default function Login() {
   const isSessionActive = sessionStorage.getItem("interngate_session_active") === "true";
   const isCallback = window.location.search.includes("code=") && window.location.search.includes("state=");
 
+  // Pre-warm the Render backend so it is awake by the time the user finishes Auth0 authentication
+  useEffect(() => {
+    fetch("https://interngate.onrender.com/api/health").catch(() => {});
+  }, []);
+
   // ── Redirect authenticated users with active session to their dashboard ────
   useEffect(() => {
     if (!loading && user && isSessionActive) {
