@@ -46,6 +46,9 @@ export function AuthProvider({ children }) {
       return;
     }
 
+    // Set active session marker immediately upon authentication
+    sessionStorage.setItem("interngate_session_active", "true");
+
     if (!auth0User) {
       return;
     }
@@ -68,6 +71,7 @@ export function AuthProvider({ children }) {
       })
       .catch((error) => {
         console.error("Profile sync failed (backend might be offline or misconfigured):", error);
+        sessionStorage.setItem("interngate_session_active", "true");
         // Fallback: use Auth0 identity details so user is not stuck in an infinite login loop.
         // Role always defaults to "student" here — the real role comes from MongoDB only.
         setProfile({

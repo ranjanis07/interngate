@@ -5,11 +5,10 @@ import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const { user, role, loading } = useAuth();
-  const { loginWithRedirect, isLoading: auth0Loading } = useAuth0();
+  const { loginWithRedirect, isLoading: auth0Loading, isAuthenticated } = useAuth0();
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState("student");
 
-  const isSessionActive = sessionStorage.getItem("interngate_session_active") === "true";
   const isCallback = window.location.search.includes("code=") && window.location.search.includes("state=");
 
   // Pre-warm the Render backend so it is awake by the time the user finishes Auth0 authentication
@@ -17,14 +16,15 @@ export default function Login() {
     fetch("https://interngate.onrender.com/api/health").catch(() => {});
   }, []);
 
-  // ── Redirect authenticated users with active session to their dashboard ────
+  // ── Redirect authenticated users to their dashboard ────
   useEffect(() => {
-    if (!loading && user && isSessionActive) {
+    if (!loading && !auth0Loading && isAuthenticated && user) {
+      sessionStorage.setItem("interngate_session_active", "true");
       if (role === "admin") navigate("/admin", { replace: true });
       else if (role === "faculty") navigate("/faculty", { replace: true });
       else navigate("/dashboard", { replace: true });
     }
-  }, [user, role, loading, isSessionActive, navigate]);
+  }, [user, role, loading, auth0Loading, isAuthenticated, navigate]);
 
   function handleLogin(options = {}) {
     // Remember role for new user registration sync
@@ -43,8 +43,8 @@ export default function Login() {
     });
   }
 
-  // Only show the signing-in spinner if we are actively processing an incoming login callback or active session syncing
-  if (isCallback || (isSessionActive && (loading || auth0Loading))) {
+  // Show signing-in spinner if we are processing OAuth callback, Auth0 is loading, or profile is syncing
+  if (isCallback || auth0Loading || (isAuthenticated && loading)) {
     return (
       <div className="auth-page">
         <div className="auth-form" style={{ textAlign: "center", padding: "40px 24px" }}>

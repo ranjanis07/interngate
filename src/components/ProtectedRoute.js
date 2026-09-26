@@ -21,15 +21,8 @@ export default function ProtectedRoute({
   const isCallback = window.location.search.includes("code=") && window.location.search.includes("state=");
 
   /*
-   * If user closed the website without logging out and reopened, sessionStorage is empty.
-   * Redirect immediately to /login unless we are actively processing a fresh OAuth callback.
-   */
-  if (!isSessionActive && !isCallback) {
-    return <Navigate to="/login" replace />;
-  }
-
-  /*
-   * Wait for Auth0 and MongoDB profile while syncing.
+   * 1. Wait for Auth0 and MongoDB profile while syncing.
+   * ALWAYS wait for auth0Loading / loading before deciding whether to redirect!
    */
   if (auth0Loading || loading) {
     return (
@@ -41,6 +34,14 @@ export default function ProtectedRoute({
         </div>
       </div>
     );
+  }
+
+  /*
+   * 2. If user closed the website without logging out and reopened, sessionStorage is empty.
+   * Redirect immediately to /login unless we are actively processing a fresh OAuth callback.
+   */
+  if (!isSessionActive && !isCallback) {
+    return <Navigate to="/login" replace />;
   }
 
   /*
